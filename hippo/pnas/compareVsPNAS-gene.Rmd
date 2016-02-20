@@ -18,7 +18,7 @@ This section has the code for running `edgeR-robust` and `DESeq2` on the simulat
 This first code chunk loads the necessary data.
 
 
-```{r 'setup', bootstrap.show.code = FALSE, bootstrap.show.message = FALSE}
+```{r 'setup', bootstrap.show.code = FALSE, bootstrap.show.message = FALSE, warning = FALSE}
 ## Track time spent on making the report
 startTime <- Sys.time()
 
@@ -410,7 +410,7 @@ ov_table(fullRegs20, both_holm, minov = 20L)
 The trends observed previously are maintained in this comparison with a reduction of cases where the gene is DE. This is expected due to the non-perfect agreement between `DESeq2` and `edgeR-robust`.
 
 
-```{r 'regionPlot-setup', bootstrap.show.code = FALSE, bootstrap.show.message = FALSE}
+```{r 'regionPlot-setup', bootstrap.show.code = FALSE, bootstrap.show.message = FALSE, warning = FALSE}
 library('TxDb.Hsapiens.UCSC.hg19.knownGene')
 library('derfinder')
 library('derfinderHelper')
@@ -421,6 +421,11 @@ load("../CoverageInfo/fullCov.Rdata")
 
 def.par <- par()
 def.par <- def.par[-which(names(def.par) %in% c('cin', 'cra', 'csi', 'cxy', 'din', 'page'))]
+
+library('RColorBrewer')
+fstats.colors <- function(x) {
+    brewer.pal(4, 'Dark2')[ifelse(x == 0, 1, ifelse(x == 1, 2, 4))]
+}
 
 regPlot <- function(region, title) {
     ## Calculate F-stats
@@ -448,12 +453,25 @@ regPlot <- function(region, title) {
     plotRegionCoverage(region, getRegionCoverage(fullCov, region, verbose = FALSE), groupInfo, data.frame(name = title, distance = NA, region = symbol), annoReg, verbose = FALSE, ask = FALSE, txdb = TxDb.Hsapiens.UCSC.hg19.knownGene)
 
     ## Add F-stat track
+    fstats.idx <- fstats > optionsStats$cutoffFstatUsed
+    fstats.idx[is.na(fstats.idx)] <- -1
+    fstats.r <- Rle(fstats.idx)
+    
+    info <- lapply(seq_len(nrun(fstats.r)), function(i) {
+        x <- c(start(fstats.r)[i], end(fstats.r)[i])
+        x <- c(x, rev(x))
+        y <- rep(runValue(fstats.r)[i], 4)
+        col <- fstats.colors(y[1])
+        return(list(x = x, y = y, col = col))
+    })
+
+
     par(fig = c(0, 1, 0.065, 0.125), new = TRUE, xaxt = 'n', oma = c(0, 0, 0, 0), mar = c(0, 4.5, 0, 1.1))
-    plot(y = fstats, x = range, ylab = 'F-stat', type = 'l', xlab = '', bty = 'n', ylim = c(0, max(fstats[is.finite(fstats)], optionsStats$cutoffFstatUsed) * 1.1), las = 2, yaxt = 'n')
-    y.max <- round(max(c(optionsStats$cutoffFstatUsed, fstats[is.finite(fstats)]), na.rm = TRUE), 0)
-    axis(2, at = c(0, round(y.max / 2, 0), y.max), c(0, round(y.max / 2, 0), y.max), las = 2, tick = TRUE)
-    abline(h = optionsStats$cutoffFstatUsed, col = 'red')
-    abline(h = 0, col = 'grey')
+    plot(1, ylab = '', type = 'n', xlab = '', bty = 'n', ylim = c(-1.2, 10), xlim = c(1, length(range)), las = 3, yaxt = 'n', xaxt = 'n')
+    axis(2, at = 0, 'F Status', las = 2, tick = TRUE)
+    for(pol in info) {
+        polygon(x=pol$x, y=pol$y + rep(c(-0.15, 0.15), each = 2), col = pol$col, border = pol$col)
+    }
 }
 
 sortWidth <- function(regions) {
@@ -540,6 +558,32 @@ query_gene_plots()
 dev.off()
 
 query_gene_plots()
+
+
+## Make figures for the paper
+pdf(file = 'figure4.pdf', width = 10, height = 7)
+sapply(selectRegions(both[sapply(width(both), sum) >= 20 & mcols(both)$sig & countOverlaps(both, fullRegions[fullRegions$sigFWER], minoverlap = 20L) > 0])[8], function(reg) {
+    regPlot(reg, 'Gene query: DE agreement')
+})
+dev.off()
+
+pdf(file = 'figure5.pdf', width = 10, height = 7)
+sapply(selectRegions(both[sapply(width(both), sum) >= 20 & !mcols(both)$sig & countOverlaps(both, fullRegions[fullRegions$sigFWER], minoverlap = 20L) == 0])[7], function(reg) {
+    regPlot(reg, 'Gene query: not DE agreement')
+})
+dev.off()
+
+pdf(file = 'figure6.pdf', width = 10, height = 7)
+sapply(selectRegions(both[sapply(width(both), sum) >= 20 & !mcols(both)$sig & countOverlaps(both, fullRegions[fullRegions$sigFWER], minoverlap = 20L) > 0])[7], function(reg) {
+    regPlot(reg, 'Gene query: only gene not DE')
+})
+dev.off()
+
+pdf(file = 'figure7.pdf', width = 10, height = 7)
+sapply(selectRegions(both[sapply(width(both), sum) >= 20 & mcols(both)$sig & countOverlaps(both, fullRegions[fullRegions$sigFWER], minoverlap = 20L) == 0])[2], function(reg) {
+    regPlot(reg, 'Gene query: only gene DE')
+})
+dev.off()
 ```
 
 
