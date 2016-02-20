@@ -129,6 +129,7 @@ View the [compareVsPNAS](hippo/pnas/compareVsPNAS.html) report or check the `R M
 The following `R` source files have the code for reproducing additional analyses described in the paper
 
 * [feature_counts.R](additional-analyses/feature_counts.R) Feature counts analysis of Hippo and Snyder data sets.
+* [createGFF.R](gff/createGFF.R) and [runGFF.sh](gff/runGFF.sh) create the GFF file used the script [optional2-HTSeq.sh](optional2-HTSeq.sh).
 
 This scripts also include other exploratory code.
 
