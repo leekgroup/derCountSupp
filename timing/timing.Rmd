@@ -255,11 +255,11 @@ These are the following analysis steps:
 
 1. __fullCov__ Extract coverage information from raw files (BAM or BigWig) by chromosome, then filter it, and save it in Rdata files.
 1. __derMod__ Calculate the sample depth adjustments and build models appropriate for the experiment.
-1. __derA__ Run single-base level analysis by chromosome.
+1. __derA__ Run single base-level analysis by chromosome.
 1. __derM__ Merge derfinder analysis results from the different chromosomes, calculate p-values and q-values.
 1. __derR__ Generate HTML report with `regionReport`.
-1. __regMat__ Run expressed-regions level analysis with `regionMatrix()`.
-1. __regsVsDers__ Compare expressed-regions vs single-base level approaches for the derfinder software paper.
+1. __regMat__ Run expressed regions-level analysis with `regionMatrix()`.
+1. __regsVsDers__ Compare expressed regions-level vs single base-level approaches.
 1. __toSam__ Transform BAM files to sorted (by name) SAM files for running HTSeq.
 1. __htseq__ Run HTSeq to generate exon count table.
 1. __summOv__  Run `GenomicRanges::summarizeOverlaps()` to generate exon count table.
