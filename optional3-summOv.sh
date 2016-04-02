@@ -9,7 +9,7 @@ EXPERIMENT=$1
 SHORT="summOv-${EXPERIMENT}"
 
 # Directories
-ROOTDIR=/dcs01/ajaffe/Brain/derRuns/derCountSupp
+ROOTDIR=/dcl01/lieber/ajaffe/derRuns/derCountSupp
 MAINDIR=${ROOTDIR}/${EXPERIMENT}
 WDIR=${MAINDIR}/summOv
 
